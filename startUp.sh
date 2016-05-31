@@ -43,7 +43,7 @@ else
 		#if its not a master, something is wrong
 		echo "The assumed Master($MASTER) is not a master."
 		echo "I refuse to enslave myself, if its not a master. I kill myself"
-		return -1
+		exit 1 #exit with error
 	fi
 	
 fi
