@@ -36,9 +36,15 @@ else
 	#check again if the assumed master is really a master
 	IS_MASTER=`mongo --host $MASTER --eval "printjson(db.isMaster())" | grep 'ismaster'`
 	if echo $IS_MASTER | grep "true"; then
-		#if its a master, join the cluster
-		echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
-		$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+		IS_MEMBER=`mongo --host $MASTER --eval "printjson(rs.conf())" | grep "$HOSTNAME"`
+		if echo $IS_MEMBER | grep "$HOSTNAME"; then
+			echo "I am already member of the cluster. So I will do nothing."
+		else
+			echo "I am not jet member of the cluster. So i will join"
+			#if its a master, join the cluster
+			echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
+			$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+		fi
 	else	
 		#if its not a master, something is wrong
 		echo "The assumed Master($MASTER) is not a master."
