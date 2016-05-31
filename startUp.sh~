@@ -29,7 +29,7 @@ then
 	#$MONGO --eval "rs.add(\"${SLAVE2}:27017\")"
 else
 	#add self to cluster
-	echo "I am a Slave ($HOSTNAME)"
+	echo "I am a Slave"
 	echo "I join the cluster of $MASTER"
 	echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
 	$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
