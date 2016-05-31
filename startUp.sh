@@ -31,8 +31,21 @@ else
 	#add self to cluster
 	echo "I am a Slave ($HOSTNAME)"
 	echo "I join the cluster of $MASTER"
-	echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
-	$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+	#wait 5 secs to the master has time
+	sleep 5
+	#check again if the assumed master is really a master
+	IS_MASTER=`mongo --host $MASTER --eval "printjson(db.isMaster())" | grep 'ismaster'`
+	if echo $IS_MASTER | grep "true"; then
+		#if its a master, join the cluster
+		echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
+		$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+	else	
+		#if its not a master, something is wrong
+		echo "The assumed Master($MASTER) is not a master."
+		echo "I refuse to enslave myself, if its not a master. I kill myself"
+		return -1
+	fi
+	
 fi
 tailf /dev/null
 
