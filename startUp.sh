@@ -28,7 +28,7 @@ then
 	#checkSlaveStatus $SLAVE2
 	#$MONGO --eval "rs.add(\"${SLAVE2}:27017\")"
 	echo "I introduce myself to the config-server"
-	$MONGO --host $MONGO_ROUTER:27019 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
+	$MONGO --host $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
 else
 	#add self to cluster
 	echo "I am a Slave ($HOSTNAME)"
