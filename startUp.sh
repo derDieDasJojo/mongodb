@@ -3,7 +3,7 @@ set -x
 MONGO_LOG="/var/log/mongodb/mongod.log"
 MONGO="/usr/bin/mongo"
 MONGOD="/usr/bin/mongod"
-$MONGOD --fork --replSet fame --noprealloc --smallfiles --logpath $MONGO_LOG
+$MONGOD --fork --replSet $MONGO_RS --noprealloc --smallfiles --logpath $MONGO_LOG
 sleep 30
  
 checkSlaveStatus(){
