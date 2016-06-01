@@ -17,7 +17,7 @@ checkSlaveStatus(){
 	done
 }
  
-if [ "$ROLE" == "master" ]
+if [ "$HOSTNAME" == "$MONGO_MASTER" ]
 then
 	# initiate cluster
 	echo "I am The master"
@@ -27,27 +27,29 @@ then
 	#$MONGO --eval "rs.add(\"${SLAVE1}:27017\")"
 	#checkSlaveStatus $SLAVE2
 	#$MONGO --eval "rs.add(\"${SLAVE2}:27017\")"
+	echo "I introduce myself to the config-server"
+	$MONGO --host $MONGO_CONFIGSERVER:27019 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
 else
 	#add self to cluster
 	echo "I am a Slave ($HOSTNAME)"
-	echo "I join the cluster of $MASTER"
+	echo "I join the cluster of $MONGO_MASTER"
 	#wait 5 secs to the master has time
 	sleep 5
 	#check again if the assumed master is really a master
-	IS_MASTER=`mongo --host $MASTER --eval "printjson(db.isMaster())" | grep 'ismaster'`
+	IS_MASTER=`mongo --host $MONGO_MASTER --eval "printjson(db.isMaster())" | grep 'ismaster'`
 	if echo $IS_MASTER | grep "true"; then
-		IS_MEMBER=`mongo --host $MASTER --eval "printjson(rs.conf())" | grep "$HOSTNAME"`
+		IS_MEMBER=`mongo --host $MONGO_MASTER --eval "printjson(rs.conf())" | grep "$HOSTNAME"`
 		if echo $IS_MEMBER | grep "$HOSTNAME"; then
 			echo "I am already member of the cluster. So I will do nothing."
 		else
 			echo "I am not jet member of the cluster. So i will join"
 			#if its a master, join the cluster
-			echo $MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
-			$MONGO --host $MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+			echo $MONGO --host $MONGO_MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
+			$MONGO --host $MONGO_MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
 		fi
 	else	
 		#if its not a master, something is wrong
-		echo "The assumed Master($MASTER) is not a master."
+		echo "The assumed Master($MONGO_MASTER) is not a master."
 		echo "I refuse to enslave myself, if its not a master. I kill myself"
 		exit 1 #exit with error
 	fi
