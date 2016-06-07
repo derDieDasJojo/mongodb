@@ -17,7 +17,7 @@ checkSlaveStatus(){
 	done
 }
  
-if [ "$HOSTNAME" == "$MONGO_MASTER" ]
+if [[ "$HOSTNAME" =~ "$MONGO_MASTER" ]] #contains
 then
 	# initiate cluster
 	echo "I am The master"
