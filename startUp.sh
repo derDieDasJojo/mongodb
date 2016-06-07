@@ -3,7 +3,7 @@ set -x
 MONGO_LOG="/var/log/mongodb/mongod.log"
 MONGO="/usr/bin/mongo"
 MONGOD="/usr/bin/mongod"
-$MONGOD --fork --replSet $MONGO_RS --noprealloc --smallfiles --logpath $MONGO_LOG
+$MONGOD --fork --replSet $MONGO_RS --noprealloc --smallfiles --logpath $MONGO_LOG --config /etc/mongod.conf
 sleep 30
  
 checkSlaveStatus(){
@@ -28,7 +28,7 @@ then
 	#checkSlaveStatus $SLAVE2
 	#$MONGO --eval "rs.add(\"${SLAVE2}:27017\")"
 	echo "I introduce myself to the config-server"
-	$MONGO --host $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
+	$MONGO --host $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\"); rs.status()"
 else
 	#add self to cluster
 	echo "I am a Slave ($HOSTNAME)"
@@ -45,7 +45,7 @@ else
 			echo "I am not jet member of the cluster. So i will join"
 			#if its a master, join the cluster
 			echo $MONGO --host $MONGO_MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"	
-			$MONGO --host $MONGO_MASTER --eval "rs.add(\"${HOSTNAME}:27017\")"
+			$MONGO --host $MONGO_MASTER --eval "rs.add(\"${HOSTNAME}:27017\"); rs.status()"
 		fi
 	else	
 		#if its not a master, something is wrong
