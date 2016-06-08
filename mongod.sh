@@ -7,11 +7,14 @@ STACK_NAME=$(echo $HOSTNAME | cut -f1 -d_)
 SERVICE_NAME=$(echo $HOSTNAME | cut -f2 -d_)
 MONGO_MASTER=${STACK_NAME}_${SERVICE_NAME}_${MONGO_MASTER_ID}
 DBNAME=$STACK_NAME
-DBAUTH="-u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin"
+DBAUTH=""
+#DBAUTH="-u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin"
+BACKGROUND="--fork --logpath $MONGO_LOG" 
 
 #start mongod
-$MONGOD --fork --replSet $MONGO_RS --noprealloc --smallfiles --logpath $MONGO_LOG --config /etc/mongod.conf
-sleep 30
+$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 
+$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
+#sleep 30
  
 checkSlaveStatus(){
 	SLAVE=$1
@@ -23,6 +26,16 @@ checkSlaveStatus(){
 		$MONGO --host $SLAVE --eval db
 	done
 }
+
+waitFor(){
+  WAIT_HOST=$1
+  WAIT_PORT=$2
+  echo "waiting for $WAIT_HOST:$WAIT_PORT to come up .. "
+  while ! echo exit | /bin/nc -zv $WAIT_HOST $WAIT_PORT; do sleep 5; done
+  echo "Service $WAIT_HOST:$WAIT_PORT reached !"
+}
+waitFor $MONGO_MASTER 27017 
+
 echo "hostname: ${HOSTNAME}"
 echo "mongo_master: ${MONGO_MASTER}" 
 if [[ "$HOSTNAME" == "$MONGO_MASTER" ]]
@@ -32,15 +45,15 @@ then
 	echo "I initiate the cluster"
 	$MONGO --eval "rs.initiate()"
 	$MONGO  --eval "rs.status()"
-	
-        echo "I introduce myself to the config-server"
-	$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
-	#$MONGO -u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
         
         echo "Set up authentication and restart mongod"
         $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\"" app/createClusterAdmin.js
         $MONGO admin --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
-        $MONGOD --fork --replSet $MONGO_RS --noprealloc --smallfiles --logpath $MONGO_LOG --auth --config /etc/mongod.conf
+        #$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
+        
+        echo "I introduce myself to the config-server"
+	$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
+	#$MONGO -u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
 
 else
 	#add self to cluster
