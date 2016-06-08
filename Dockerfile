@@ -1,6 +1,7 @@
 FROM mongo:3.2
-RUN apt-get -y update && apt-get -y install netcat vim-tiny
+RUN apt-get -y update && apt-get -y install netcat openssl vim-tiny
 
+#VOLUME /app/keyfiles
 ADD mongod.conf /etc/mongod.conf
 ADD mongos.conf /etc/mongos.conf
 ADD mongoc.conf /etc/mongoc.conf
@@ -8,7 +9,8 @@ ADD run.sh /app/run.sh
 ADD mongos.sh /app/mongos.sh
 ADD mongod.sh /app/mongod.sh
 ADD mongoc.sh /app/mongoc.sh
-ADD keyfile /app/keyfile
+ADD keyfile /keyfile
+#ADD keyfile-gen.sh /app/keyfile-gen.sh
 ADD createClusterAdmin.js /app/createClusterAdmin.js
 ADD createAdmin.js /app/createAdmin.js
 CMD ["bash","/app/run.sh"] 
