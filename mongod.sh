@@ -12,7 +12,7 @@ DBAUTH=""
 BACKGROUND="--fork --logpath $MONGO_LOG" 
 
 #start mongod
-$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 
+#$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 
 $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
 #sleep 30
  
@@ -49,13 +49,14 @@ then
         echo "Set up authentication and restart mongod"
         sleep 3
         $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\"" app/createClusterAdmin.js
-        $MONGO admin --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
-        #$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
+        $MONGO $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
+        #$MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
+        $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
         
         echo "I introduce myself to the config-server"
 	waitFor $MONGO_ROUTER 27017
-	$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
-	#$MONGO -u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
+	#$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
+	$MONGO -u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
 
 else
 	#add self to cluster

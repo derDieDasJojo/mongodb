@@ -23,11 +23,11 @@ waitFor(){
 waitFor $MONGO_MASTER 27017 
 
 #start mongos
-$MONGOS $BACKGROUND --configdb ${MONGO_CONFIG_IPS}
+$MONGOS $BACKGROUND --configdb ${MONGO_CONFIG_IPS} --config /etc/mongos.conf
 #sleep 20
 waitFor localhost 27017 
 $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\", adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createClusterAdmin.js
-$MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\", adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
+$MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" --authenticationDatabase=admin $DBNAME --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\", adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
 
 #$MONGOS --configdb ${MONGO_CONFIG_IPS} --config /etc/mongos.conf
 
