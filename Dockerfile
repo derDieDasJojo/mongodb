@@ -14,4 +14,5 @@ RUN chmod 600 /app/keyfile
 #ADD keyfile-gen.sh /app/keyfile-gen.sh
 ADD createClusterAdmin.js /app/createClusterAdmin.js
 ADD createAdmin.js /app/createAdmin.js
+EXPOSE 27017
 CMD ["bash","/app/run.sh"] 
