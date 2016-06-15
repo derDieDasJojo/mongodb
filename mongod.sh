@@ -14,8 +14,8 @@ DBAUTH=""
 BACKGROUND="--fork --logpath $MONGO_LOG" 
 
 # start mongod
-#$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 				#without authentication config
-$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf #with authentication config
+$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 				#without authentication config
+#$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf #with authentication config
  
 # not used function
 checkSlaveStatus(){
@@ -54,14 +54,14 @@ then
 	$MONGO --eval "rs.initiate()"
 	$MONGO  --eval "rs.status()"
         
-        echo "Set up authentication and restart mongod"
-        sleep 3 #for the replicaset to have a short time to initialize
-        $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\"" app/createClusterAdmin.js
-        $MONGO $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
-        #$MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js #if authentication is needed
-        $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
+  echo "Set up authentication and restart mongod"
+  sleep 3 #for the replicaset to have a short time to initialize
+  $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\"" app/createClusterAdmin.js
+  $MONGO $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
+  #$MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js #if authentication is needed
+  $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
         
-        echo "I introduce myself to the config-server"
+  echo "I introduce myself to the config-server"
 	# wait for mongo master
 	waitFor $MONGO_ROUTER 27017
 	#$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
@@ -100,5 +100,6 @@ else
 	fi
 	
 fi
-tailf /dev/null
-
+#tailf /dev/null
+echo "start mongo in foreground"
+$MONGOD  --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf #with authentication config
