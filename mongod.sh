@@ -66,7 +66,12 @@ then
 	waitFor $MONGO_ROUTER 27017
 	#$MONGO $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
 	$MONGO -u clusterAdmin -p ${CLUSTER_ADMIN_PASS} --authenticationDatabase admin $MONGO_ROUTER:27017 --eval "sh.addShard(\"rs1/$HOSTNAME:27017\")"
-
+	if [ $? == 0 ]; then
+    echo success
+  else
+	  echo "failed to addShard to router. Exiting"
+		exit -1
+	fi
 else
 	# add mongod to cluster
 	echo "I am a Slave ${HOSTNAME}. I join the cluster of $MONGO_MASTER"
