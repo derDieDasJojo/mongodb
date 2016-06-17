@@ -16,6 +16,12 @@ BACKGROUND="--fork --logpath $MONGO_LOG"
 # start mongod
 #$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles 				#without authentication config
 $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf #with authentication config
+if [ $? == 0 ]; then
+  echo success
+else
+  cat $MONGO_LOG
+  exit -1
+fi
  
 # not used function
 checkSlaveStatus(){
@@ -59,7 +65,7 @@ then
         $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\"" app/createClusterAdmin.js
         $MONGO $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
         #$MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" $DBNAME --eval "adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js #if authentication is needed
-        $MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
+        #$MONGOD $BACKGROUND --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf
         
         echo "I introduce myself to the config-server"
 	# wait for mongo master
@@ -95,5 +101,9 @@ else
 	fi
 	
 fi
-tailf /dev/null
+mongod --shutdown
+echo "Mongo Log:"
+cat $MONGO_LOG
+rm $MONGO_LOG
+$MONGOD --replSet $MONGO_RS --smallfiles --config /etc/mongod.conf #with authentication config
 

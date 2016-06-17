@@ -10,6 +10,7 @@ MONGO_MASTER=${STACK_NAME}_${MONGO_MASTER_NAME}_${MONGO_MASTER_ID}
 DBNAME=$STACK_NAME
 BACKGROUND="--fork --logpath $MONGO_LOG"
 
+
 # get ip of host 
 # 1) get ips adresses. 1 per line 2)replace linefeed with "," 3) replace "," with ":27017," 4) remove last ","
 MONGO_CONFIG_IPS=$(getent hosts mongo-config | cut -f1 -d\ | tr '\n' ',' | sed 's/\,/\:27017\,/g')
@@ -32,7 +33,7 @@ waitFor(){
 waitFor $MONGO_MASTER 27017 
 
 # start mongos router
-$MONGOS $BACKGROUND --configdb ${MONGO_CONFIG_IPS} --config /etc/mongos.conf
+$MONGOS $BACKGROUND --configdb ${MONGO_CONFIG_IPS} --config /etc/mongos.conf -vvvvv
 
 # wait for mongos router
 waitFor localhost 27017 
@@ -40,9 +41,6 @@ waitFor localhost 27017
 # add admin accounts
 $MONGO admin --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\", adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createClusterAdmin.js
 $MONGO -u "clusterAdmin" -p "${CLUSTER_ADMIN_PASS}" --authenticationDatabase=admin $DBNAME --eval "clusteradminpassword=\"${CLUSTER_ADMIN_PASS}\", adminuser=\"${DB_ADMIN_USER}\", adminpassword=\"${DB_ADMIN_PASS}\"" app/createAdmin.js
-
-# start mongos in foreground
-#$MONGOS --configdb ${MONGO_CONFIG_IPS} --config /etc/mongos.conf
 
 # show logs in console
 tailf /var/log/mongodb/mongod.log
